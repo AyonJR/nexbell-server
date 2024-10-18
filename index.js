@@ -42,6 +42,94 @@ app.get("/products", async(req,res)=> {
 })
 
 
+
+app.post("/addProduct", async (req, res) => {
+    const product = req.body; // product data from client
+    try {
+      const result = await productsCollection.insertOne(product); // Insert the product into the collection
+      res.send({ success: true, message: "Product added successfully", result });
+    } catch (error) {
+      console.error("Error adding product:", error);
+      res.send({ success: false, message: "Failed to add product" });
+    }
+  });
+
+
+
+
+  const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+
+  // GET specific product by ID
+  app.get("/products/:id", async (req, res) => {
+      const productId = req.params.id; // Get the product ID from the request parameters
+  
+      // Validate the product ID format
+      if (!ObjectId.isValid(productId)) {
+          return res.status(400).send("Invalid product ID format");
+      }
+  
+      try {
+          const product = await productsCollection.findOne({ _id: new ObjectId(productId) }); // Fetch the product by ID
+  
+          if (!product) {
+              return res.status(404).send("Product not found"); // If product is not found
+          }
+  
+          res.json(product); // Return the product details as JSON
+      } catch (error) {
+          console.error("Error fetching product:", error);
+          res.status(500).send("Server error"); // Handle any server errors
+      }
+  });
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  app.put("/products/:id", async (req, res) => {
+  const productId = req.params.id;
+  const updatedProduct = req.body;
+
+  // Validate if the productId is a valid ObjectId
+  try {
+    const objectId = new ObjectId(productId);
+  } catch (error) {
+    return res.status(400).send("Invalid Product ID");
+  }
+
+  try {
+    const result = await productsCollection.updateOne(
+      { _id: new ObjectId(productId) },
+      { $set: updatedProduct }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).send("Product not found or no changes made");
+    }
+
+    res.send({ success: true, message: "Product updated successfully" });
+  } catch (error) {
+    console.error("Error updating product:", error);
+    res.status(500).send("Server error");
+  }
+});
+
+
+
+
 // users cart products 
 
 app.get("/cart", async (req, res) => {
